@@ -1,0 +1,86 @@
+version: '3.9'
+name: my_docker_project  # Nama proyek Docker
+
+services:
+  web:  # Web server (NGINX)
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html  # Direktori HTML kustom
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf  # Konfigurasi NGINX kustom
+    networks:
+      - webnetwork
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+        reservations:
+          memory: 64M
+
+  db:  # Database server (PostgreSQL)
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ofi
+      POSTGRES_PASSWORD: ifa
+      POSTGRES_DB: exampledb
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - webnetwork
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.00'
+        reservations:
+          memory: 256M
+
+  pgadmin:  # PGAdmin for managing PostgreSQL
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ofiifa@example.com  # Email untuk login PGAdmin
+      PGADMIN_DEFAULT_PASSWORD: ofiifa  # Password untuk login PGAdmin
+    ports:
+      - "5050:80"  # Akses PGAdmin melalui http://localhost:5050
+    networks:
+      - webnetwork
+    depends_on:
+      - db  
+    
+
+  mysql:  # Database server (MySQL)
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    networks:
+      - webnetwork
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.00'
+        reservations:
+          memory: 256M
+
+networks:
+  webnetwork:
+    driver: bridge
+
+volumes:
+  dbdata:
+  mysqldata:
+
+configs:
+  nginx_config:  # Konfigurasi tambahan untuk NGINX
+    file: ./nginx.conf  # Lokasi file konfigurasi NGINX
